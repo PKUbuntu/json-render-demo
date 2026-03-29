@@ -271,12 +271,12 @@ ${spaces}</${componentName}>`;
   
   // 生成 imports
   const components = new Set<string>();
-  function collectComponents(node: any) {
+  function collectComponents(node: { type?: string; children?: unknown[] }) {
     if (node.type && node.type !== 'div') {
       components.add(node.type);
     }
     if (node.children) {
-      node.children.forEach(collectComponents);
+      node.children.forEach((c: unknown) => collectComponents(c as { type?: string; children?: unknown[] }));
     }
   }
   collectComponents(schema.component);
@@ -307,7 +307,7 @@ const App: React.FC = () => {
   const [aiPrompt, setAiPrompt] = useState('');
 
   // 处理 Action
-  const handleAction = useCallback((actionName: string, payload: any) => {
+  const handleAction = useCallback((actionName: string, _payload: Record<string, unknown>) => {
     message.success(`Action triggered: ${actionName}`);
   }, []);
 
@@ -570,7 +570,6 @@ const App: React.FC = () => {
                           type="success"
                           message="✅ 这段代码可以直接复制到项目中使用"
                           showIcon
-                          size="small"
                         />
                       </Card>
                     </div>

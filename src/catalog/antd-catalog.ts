@@ -9,11 +9,10 @@
  * AI 只能生成符合这个 Catalog 的 JSON，从而保证输出可控
  */
 
-import { defineCatalog } from '@json-render/core';
 import { z } from 'zod';
 
-// 定义 antd 组件目录
-export const antdCatalog = defineCatalog({
+// 定义 antd 组件目录 Schema
+export const antdCatalogSchema = {
   components: {
     // ==================== 通用组件 ====================
     Button: {
@@ -25,7 +24,7 @@ export const antdCatalog = defineCatalog({
         disabled: z.boolean().optional(),
         block: z.boolean().optional(),
         children: z.string(),
-        onClick: z.string().optional(), // action name
+        onClick: z.string().optional(),
       }),
       description: 'Ant Design Button component with various styles',
     },
@@ -289,15 +288,6 @@ export const antdCatalog = defineCatalog({
       description: 'Modal dialog component',
     },
 
-    Message: {
-      props: z.object({
-        type: z.enum(['success', 'error', 'info', 'warning', 'loading']),
-        content: z.string(),
-        duration: z.number().optional(),
-      }),
-      description: 'Global message notification',
-    },
-
     Alert: {
       props: z.object({
         type: z.enum(['success', 'info', 'warning', 'error']),
@@ -457,7 +447,7 @@ export const antdCatalog = defineCatalog({
       }),
     },
   },
-});
+};
 
 // 导出类型
-export type AntdCatalog = typeof antdCatalog;
+export type AntdCatalog = typeof antdCatalogSchema;
