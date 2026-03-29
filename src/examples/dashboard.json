@@ -1,0 +1,432 @@
+{
+  "version": "1.0.0",
+  "component": {
+    "type": "Space",
+    "props": {
+      "direction": "vertical",
+      "size": "large",
+      "style": { "width": "100%" }
+    },
+    "children": [
+      {
+        "type": "Card",
+        "props": {
+          "title": "📊 Dashboard Overview",
+          "bordered": false
+        },
+        "children": [
+          {
+            "type": "Row",
+            "props": {
+              "gutter": 24
+            },
+            "children": [
+              {
+                "type": "Col",
+                "props": { "span": 6 },
+                "children": [
+                  {
+                    "type": "Statistic",
+                    "props": {
+                      "title": "Total Users",
+                      "value": 112893,
+                      "prefix": "👥",
+                      "valueStyle": { "color": "#3f8600" }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Col",
+                "props": { "span": 6 },
+                "children": [
+                  {
+                    "type": "Statistic",
+                    "props": {
+                      "title": "Active Today",
+                      "value": 8462,
+                      "prefix": "🔥",
+                      "valueStyle": { "color": "#1890ff" }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Col",
+                "props": { "span": 6 },
+                "children": [
+                  {
+                    "type": "Statistic",
+                    "props": {
+                      "title": "Revenue",
+                      "value": 98675.50,
+                      "prefix": "$",
+                      "precision": 2,
+                      "valueStyle": { "color": "#cf1322" }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "Col",
+                "props": { "span": 6 },
+                "children": [
+                  {
+                    "type": "Statistic",
+                    "props": {
+                      "title": "Conversion",
+                      "value": 87.5,
+                      "suffix": "%",
+                      "valueStyle": { "color": "#722ed1" }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Card",
+        "props": {
+          "title": "📈 Progress",
+          "bordered": false
+        },
+        "children": [
+          {
+            "type": "Space",
+            "props": {
+              "direction": "vertical",
+              "size": "middle",
+              "style": { "width": "100%" }
+            },
+            "children": [
+              {
+                "type": "div",
+                "props": {
+                  "style": { "display": "flex", "justifyContent": "space-between", "alignItems": "center" }
+                },
+                "children": [
+                  { "type": "TypographyText", "props": { "children": "Frontend Development" } },
+                  { "type": "Tag", "props": { "children": "In Progress", "color": "processing" } }
+                ]
+              },
+              {
+                "type": "Progress",
+                "props": { "percent": 75, "status": "active", "strokeColor": "#1890ff" }
+              },
+              {
+                "type": "div",
+                "props": {
+                  "style": { "display": "flex", "justifyContent": "space-between", "alignItems": "center" }
+                },
+                "children": [
+                  { "type": "TypographyText", "props": { "children": "Backend API" } },
+                  { "type": "Tag", "props": { "children": "Completed", "color": "success" } }
+                ]
+              },
+              {
+                "type": "Progress",
+                "props": { "percent": 100, "status": "success", "strokeColor": "#52c41a" }
+              },
+              {
+                "type": "div",
+                "props": {
+                  "style": { "display": "flex", "justifyContent": "space-between", "alignItems": "center" }
+                },
+                "children": [
+                  { "type": "TypographyText", "props": { "children": "Database Migration" } },
+                  { "type": "Tag", "props": { "children": "Pending", "color": "default" } }
+                ]
+              },
+              {
+                "type": "Progress",
+                "props": { "percent": 0, "status": "normal" }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Card",
+        "props": {
+          "title": "📋 Data Table",
+          "bordered": false
+        },
+        "children": [
+          {
+            "type": "Space",
+            "props": {
+              "size": "middle",
+              "style": { "marginBottom": 16 }
+            },
+            "children": [
+              {
+                "type": "Input",
+                "props": {
+                  "placeholder": "Search...",
+                  "allowClear": true,
+                  "style": { "width": 200 }
+                }
+              },
+              {
+                "type": "Select",
+                "props": {
+                  "placeholder": "Status",
+                  "allowClear": true,
+                  "style": { "width": 120 },
+                  "options": [
+                    { "label": "Active", "value": "active" },
+                    { "label": "Inactive", "value": "inactive" },
+                    { "label": "Pending", "value": "pending" }
+                  ]
+                }
+              },
+              {
+                "type": "Button",
+                "props": {
+                  "type": "primary",
+                  "children": "Search",
+                  "onClick": "filter"
+                }
+              },
+              {
+                "type": "Button",
+                "props": {
+                  "children": "Export",
+                  "onClick": "exportData"
+                }
+              }
+            ]
+          },
+          {
+            "type": "Table",
+            "props": {
+              "columns": [
+                { "title": "Name", "dataIndex": "name", "key": "name" },
+                { "title": "Email", "dataIndex": "email", "key": "email" },
+                { 
+                  "title": "Status", 
+                  "dataIndex": "status", 
+                  "key": "status",
+                  "render": "Tag"
+                },
+                { "title": "Created", "dataIndex": "created", "key": "created" }
+              ],
+              "dataSource": [
+                { "key": "1", "name": "John Brown", "email": "john@example.com", "status": "Active", "created": "2024-01-15" },
+                { "key": "2", "name": "Jim Green", "email": "jim@example.com", "status": "Inactive", "created": "2024-02-20" },
+                { "key": "3", "name": "Joe Black", "email": "joe@example.com", "status": "Pending", "created": "2024-03-10" },
+                { "key": "4", "name": "Disabled User", "email": "disabled@example.com", "status": "Inactive", "created": "2024-03-15" }
+              ],
+              "pagination": { "pageSize": 5 },
+              "size": "middle"
+            }
+          }
+        ]
+      },
+      {
+        "type": "Card",
+        "props": {
+          "title": "📝 Form Example",
+          "bordered": false
+        },
+        "children": [
+          {
+            "type": "Space",
+            "props": {
+              "direction": "vertical",
+              "size": "middle",
+              "style": { "width": "100%" }
+            },
+            "children": [
+              {
+                "type": "Row",
+                "props": { "gutter": 16 },
+                "children": [
+                  {
+                    "type": "Col",
+                    "props": { "span": 12 },
+                    "children": [
+                      {
+                        "type": "div",
+                        "props": { "style": { "marginBottom": 8 } },
+                        "children": [
+                          { "type": "TypographyText", "props": { "children": "Username", "strong": true } }
+                        ]
+                      },
+                      {
+                        "type": "Input",
+                        "props": {
+                          "placeholder": "Enter username",
+                          "onChange": "updateUsername"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Col",
+                    "props": { "span": 12 },
+                    "children": [
+                      {
+                        "type": "div",
+                        "props": { "style": { "marginBottom": 8 } },
+                        "children": [
+                          { "type": "TypographyText", "props": { "children": "Email", "strong": true } }
+                        ]
+                      },
+                      {
+                        "type": "Input",
+                        "props": {
+                          "placeholder": "Enter email",
+                          "onChange": "updateEmail"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "Row",
+                "props": { "gutter": 16 },
+                "children": [
+                  {
+                    "type": "Col",
+                    "props": { "span": 12 },
+                    "children": [
+                      {
+                        "type": "div",
+                        "props": { "style": { "marginBottom": 8 } },
+                        "children": [
+                          { "type": "TypographyText", "props": { "children": "Role", "strong": true } }
+                        ]
+                      },
+                      {
+                        "type": "Select",
+                        "props": {
+                          "placeholder": "Select role",
+                          "style": { "width": "100%" },
+                          "options": [
+                            { "label": "Admin", "value": "admin" },
+                            { "label": "User", "value": "user" },
+                            { "label": "Guest", "value": "guest" }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Col",
+                    "props": { "span": 12 },
+                    "children": [
+                      {
+                        "type": "div",
+                        "props": { "style": { "marginBottom": 8 } },
+                        "children": [
+                          { "type": "TypographyText", "props": { "children": "Department", "strong": true } }
+                        ]
+                      },
+                      {
+                        "type": "Select",
+                        "props": {
+                          "placeholder": "Select department",
+                          "style": { "width": "100%" },
+                          "mode": "multiple",
+                          "options": [
+                            { "label": "Engineering", "value": "eng" },
+                            { "label": "Design", "value": "design" },
+                            { "label": "Marketing", "value": "marketing" },
+                            { "label": "Sales", "value": "sales" }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "Row",
+                "props": { "gutter": 16 },
+                "children": [
+                  {
+                    "type": "Col",
+                    "props": { "span": 8 },
+                    "children": [
+                      {
+                        "type": "div",
+                        "props": { "style": { "marginBottom": 8 } },
+                        "children": [
+                          { "type": "TypographyText", "props": { "children": "Active", "strong": true } }
+                        ]
+                      },
+                      { "type": "Switch", "props": { "defaultChecked": true } }
+                    ]
+                  },
+                  {
+                    "type": "Col",
+                    "props": { "span": 16 },
+                    "children": [
+                      {
+                        "type": "div",
+                        "props": { "style": { "marginBottom": 8 } },
+                        "children": [
+                          { "type": "TypographyText", "props": { "children": "Notifications", "strong": true } }
+                        ]
+                      },
+                      {
+                        "type": "Space",
+                        "props": {},
+                        "children": [
+                          { "type": "Checkbox", "props": { "checked": true, "children": "Email" } },
+                          { "type": "Checkbox", "props": { "checked": true, "children": "SMS" } },
+                          { "type": "Checkbox", "props": { "children": "Push" } }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "Divider",
+                "props": {}
+              },
+              {
+                "type": "Space",
+                "props": {},
+                "children": [
+                  { "type": "Button", "props": { "type": "primary", "children": "Submit", "onClick": "submit" } },
+                  { "type": "Button", "props": { "children": "Cancel" } }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "Alert",
+        "props": {
+          "type": "info",
+          "message": "This dashboard is rendered from JSON Schema!",
+          "description": "The entire UI is defined as JSON data and rendered dynamically using the antd component catalog.",
+          "showIcon": true,
+          "closable": true
+        }
+      }
+    ]
+  },
+  "actions": {
+    "submit": {
+      "type": "submit",
+      "url": "/api/users",
+      "method": "POST"
+    },
+    "exportData": {
+      "type": "exportData",
+      "format": "excel"
+    },
+    "filter": {
+      "type": "filter",
+      "target": "table"
+    }
+  }
+}

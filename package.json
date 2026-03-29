@@ -1,0 +1,35 @@
+{
+  "name": "json-render-demo",
+  "version": "1.0.0",
+  "description": "JSON Render Demo - AI generates JSON → Renders antd UI",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "json-render",
+    "antd",
+    "ai",
+    "ui-generation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@json-render/core": "^0.16.0",
+    "@json-render/react": "^0.16.0",
+    "antd": "^6.3.4",
+    "dayjs": "^1.11.20",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.3"
+  }
+}
