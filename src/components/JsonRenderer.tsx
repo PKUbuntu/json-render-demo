@@ -1,11 +1,11 @@
 /**
  * JSON 渲染器
- * 
+ *
  * 将 JSON Schema 渲染为真实的 React 组件
- * 简化版本，避免复杂的类型问题
+ * 在渲染前使用 Zod 校验 Schema 的合法性
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Button,
   Card,
@@ -36,6 +36,10 @@ import {
   Empty,
   Image,
 } from 'antd';
+import {
+  validateJsonSchema,
+  formatValidationResult,
+} from '../utils/schemaValidator';
 
 const { Title, Text } = Typography;
 
@@ -89,21 +93,21 @@ const componentMap: Record<string, any> = {
 // 渲染单个节点
 function renderNode(node: JsonNode, context: any): React.ReactNode {
   const { type, props = {}, children = [] } = node;
-  
+
   // 处理原生 HTML 元素
   if (['div', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'img', 'ul', 'ol', 'li'].includes(type)) {
-    const renderedChildren = children.map((child, index) => 
+    const renderedChildren = children.map((child, index) =>
       renderNode(child, { ...context, key: index })
     );
     return React.createElement(type, { key: context.key, ...props }, renderedChildren);
   }
-  
+
   const Component = componentMap[type];
-  
+
   if (!Component) {
     console.warn(`Unknown component type: ${type}`);
     // 使用 div 作为 fallback
-    const renderedChildren = children.map((child, index) => 
+    const renderedChildren = children.map((child, index) =>
       renderNode(child, { ...context, key: index })
     );
     return React.createElement('div', { key: context.key, ...props }, renderedChildren);
@@ -143,7 +147,7 @@ function renderNode(node: JsonNode, context: any): React.ReactNode {
   }
 
   // 渲染子节点
-  const renderedChildren = children.map((child, index) => 
+  const renderedChildren = children.map((child, index) =>
     renderNode(child, { ...context, key: index })
   );
 
@@ -169,13 +173,34 @@ interface JsonRendererProps {
   schema: JsonSchema;
   state?: Record<string, any>;
   onAction?: (actionName: string, payload: any) => void;
+  strict?: boolean;
+  showValidation?: boolean;
 }
 
-export const JsonRenderer: React.FC<JsonRendererProps> = ({ 
-  schema, 
-  state, 
-  onAction 
+export const JsonRenderer: React.FC<JsonRendererProps> = ({
+  schema,
+  state,
+  onAction,
+  strict = false,
+  showValidation = false,
 }) => {
+  const [validationResult, setValidationResult] = useState<ReturnType<typeof validateJsonSchema> | null>(null);
+
+  useEffect(() => {
+    const result = validateJsonSchema(schema);
+    setValidationResult(result);
+
+    // 严格模式下，校验失败时抛出异常
+    if (strict && !result.valid) {
+      throw new Error(formatValidationResult(result));
+    }
+
+    // 开发环境下，即使不严格也输出警告
+    if (process.env.NODE_ENV === 'development' && !result.valid) {
+      console.warn('Schema validation failed:', result);
+    }
+  }, [schema, strict]);
+
   const context = {
     state,
     onAction: (actionName: string, payload: any) => {
@@ -185,6 +210,62 @@ export const JsonRenderer: React.FC<JsonRendererProps> = ({
       }
     },
   };
+
+  // 校验失败且不是严格模式，显示错误信息
+  if (validationResult && !validationResult.valid) {
+    return (
+      <div className="json-renderer">
+        <Alert
+          message="Schema 校验失败"
+          description={
+            <pre style={{ maxHeight: 300, overflow: 'auto' }}>
+              {formatValidationResult(validationResult)}
+            </pre>
+          }
+          type="error"
+          showIcon
+        />
+        {renderJsonSchema(schema, context)}
+      </div>
+    );
+  }
+
+  // 显示校验结果（用于演示）
+  if (showValidation && validationResult) {
+    const alertType = validationResult.valid ? 'success' : 'warning';
+    const alertMessage = validationResult.valid
+      ? 'Schema 校验通过'
+      : 'Schema 校验通过（有警告）';
+
+    return (
+      <div className="json-renderer">
+        <Alert
+          message={alertMessage}
+          description={
+            <div>
+              {validationResult.errors.length === 0 && validationResult.warnings.length === 0 && (
+                <span>所有组件和 Props 均符合 Catalog 定义</span>
+              )}
+              {validationResult.warnings.length > 0 && (
+                <>
+                  <strong>警告：</strong>
+                  <ul style={{ margin: '8px 0 0 20px' }}>
+                    {validationResult.warnings.map((warning, idx) => (
+                      <li key={idx}>{warning}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          }
+          type={alertType as any}
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+        {renderJsonSchema(schema, context)}
+      </div>
+    );
+  }
 
   return (
     <div className="json-renderer">

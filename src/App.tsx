@@ -21,6 +21,7 @@ import {
   Typography,
   Collapse,
   Steps,
+  Switch,
   Tag,
   Divider,
   message,
@@ -293,6 +294,34 @@ export default function GeneratedComponent() {
   return (
 ${generateNodeCode(schema.component, 2)}
   );
+
+// ==================== 非法 Schema 示例（用于测试校验） ====================
+
+// 非法示例 1: 未知组件类型
+const invalidSchema: JsonSchema = {
+  version: '1.0.0',
+  component: {
+    type: 'UnknownComponent',  // ❌ 这个组件不在 Catalog 中
+    props: { title: 'Test' },
+    children: [
+      { type: 'Button', props: { type: 'primary', children: 'Click' } }
+    ]
+  }
+};
+
+// 非法示例 2: 错误的 Props
+const invalidPropsSchema: JsonSchema = {
+  version: '1.0.0',
+  component: {
+    type: 'Button',
+    props: {
+      type: 'invalid-type',  // ❌ 必须是 enum 中的值
+      size: 'huge',  // ❌ 必须是 large/middle/small
+      children: 'Test'
+    },
+    children: []
+  }
+};
 }`;
 }
 
@@ -303,6 +332,7 @@ const App: React.FC = () => {
   const [currentSchema, setCurrentSchema] = useState<JsonSchema>(simpleCardSchema);
   const [currentJson, setCurrentJson] = useState(JSON.stringify(simpleCardSchema, null, 2));
   const [generatedCode, setGeneratedCode] = useState(generateCode(simpleCardSchema));
+  const [showValidation, setShowValidation] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
 
@@ -484,7 +514,22 @@ const App: React.FC = () => {
 
                     <div style={{ width: '60%' }}>
                       <Card title="🎨 渲染结果 (antd Components)" bordered={false}>
-                        <JsonRenderer schema={currentSchema} onAction={handleAction} />
+                        <Space direction="vertical" style={{ width: '100%' }}>
+                          <div>
+                            <Text type="secondary">校验模式：</Text>
+                            <Switch
+                              checkedChildren="显示校验"
+                              unCheckedChildren="隐藏校验"
+                              checked={showValidation}
+                              onChange={setShowValidation}
+                              style={{ marginLeft: 8 }}
+                            />
+                            <span style={{ marginLeft: 16, fontSize: 12, color: '#888' }}>
+                              {showValidation ? '启用 Zod Schema 校验' : '仅渲染'}
+                            </span>
+                          </div>
+                          <JsonRenderer schema={currentSchema} onAction={handleAction} showValidation={showValidation} />
+                        </Space>
                       </Card>
 
                       <Card title="📚 Catalog 约束" bordered={false} style={{ marginTop: 16 }} size="small">
@@ -631,7 +676,80 @@ const App: React.FC = () => {
                 ),
               },
 
-              // Tab 5: Figma 双向同步潜力
+              // Tab 5: Schema 校验演示
+              {
+                key: 'validation',
+                label: '✅ Schema 校验',
+                children: (
+                  <div style={{ display: 'flex', gap: 24 }}>
+                    <div style={{ width: '40%' }}>
+                      <Card title="📝 选择测试用例" bordered={false} size="small">
+                        <Space direction="vertical" style={{ width: '100%' }}>
+                          <Text type="secondary">测试用例：</Text>
+                          <Space wrap>
+                            <Button 
+                              size="small" 
+                              type="primary"
+                              onClick={() => loadExample(simpleCardSchema)}
+                            >
+                              ✅ 合法：Simple Card
+                            </Button>
+                            <Button 
+                              size="small" 
+                              onClick={() => loadExample(formSchema)}
+                            >
+                              ✅ 合法：Form
+                            </Button>
+                            <Button 
+                              size="small" 
+                              onClick={() => loadExample(dashboardSchema)}
+                            >
+                              ✅ 合法：Dashboard
+                            </Button>
+                            <Button 
+                              size="small" 
+                              danger
+                              onClick={() => loadExample(invalidSchema)}
+                            >
+                              ❌ 非法：未知组件
+                            </Button>
+                            <Button 
+                              size="small" 
+                              danger
+                              onClick={() => loadExample(invalidPropsSchema)}
+                            >
+                              ❌ 非法：错误 Props
+                            </Button>
+                          </Space>
+                        </Space>
+                        <Divider style={{ margin: '12px 0' }} />
+                        <pre style={{ 
+                          fontSize: 11, 
+                          maxHeight: 400, 
+                          overflow: 'auto',
+                          backgroundColor: isDark ? '#1e1e1e' : '#f5f5f5',
+                          padding: 12,
+                          borderRadius: 6,
+                        }}>
+                          {currentJson}
+                        </pre>
+                      </Card>
+                    </div>
+
+                    <div style={{ width: '60%' }}>
+                      <Card title="🔍 校验结果 & 渲染" bordered={false}>
+                        <JsonRenderer 
+                          schema={currentSchema} 
+                          onAction={handleAction} 
+                          showValidation={true}
+                        />
+                      </Card>
+                    </div>
+                  </div>
+                ),
+              },
+
+              // Tab 6: Figma 双向同步潜力
               {
                 key: 'figma',
                 label: '📐 Figma 双向同步潜力',

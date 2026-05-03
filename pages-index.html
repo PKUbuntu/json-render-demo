@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PKUbuntu - Open Source Projects</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 60px;
+        }
+        
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 48px;
+            box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3);
+        }
+        
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .tagline {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 30px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        
+        .section {
+            margin-bottom: 60px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 2px;
+        }
+        
+        .projects {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+        }
+        
+        .project-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .project-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        
+        .project-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+        
+        .project-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        
+        .project-status.development {
+            background: rgba(234, 179, 8, 0.2);
+            color: #eab308;
+        }
+        
+        .project-description {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        
+        .project-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        
+        .project-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .tag {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+        
+        .tag.highlight {
+            background: rgba(139, 92, 246, 0.2);
+            color: #a78bfa;
+        }
+        
+        .demo-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #3b82f6;
+            font-size: 0.875rem;
+            margin-top: 12px;
+        }
+        
+        .github-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #64748b;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            text-decoration: none;
+        }
+        
+        .github-link:hover {
+            color: #94a3b8;
+        }
+        
+        .feature-list {
+            margin-top: 12px;
+            padding-left: 16px;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+        
+        .feature-list li {
+            margin-bottom: 4px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 60px;
+            color: #64748b;
+        }
+        
+        footer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .projects {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="avatar">⚛️</div>
+            <h1>PKUbuntu</h1>
+            <p class="tagline">探索 AI、Agent 与开发者工具的无限可能</p>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value">4</div>
+                    <div class="stat-label">在线演示</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">AI</div>
+                    <div class="stat-label">研究方向</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">Open</div>
+                    <div class="stat-label">开源精神</div>
+                </div>
+            </div>
+        </header>
+        
+        <section class="section">
+            <h2 class="section-title">🚀 已发布项目</h2>
+            <div class="projects">
+                <!-- JSON Render Demo - 新增 -->
+                <a href="https://pkubuntu.github.io/json-render-demo/" class="project-card" target="_blank">
+                    <div class="project-header">
+                        <span class="project-name">JSON Render Demo</span>
+                        <span class="project-status">✅ 在线</span>
+                    </div>
+                    <p class="project-description">
+                        展示 JSON Render 核心能力：AI 生成受控 JSON → 动态渲染 antd UI → 自动生成 React 代码。
+                        灵感来自 Vercel json-render，适合企业级中后台场景。
+                    </p>
+                    <ul class="feature-list">
+                        <li>✓ Schema 约束 AI 输出，完全可控</li>
+                        <li>✓ JSON → antd UI 实时渲染</li>
+                        <li>✓ JSON → React Code 自动生成</li>
+                        <li>✓ Figma 双向同步潜力</li>
+                    </ul>
+                    <div class="demo-link">🔗 点击查看演示</div>
+                    <div class="github-link" onclick="event.preventDefault(); event.stopPropagation(); window.open('https://github.com/PKUbuntu/json-render-demo', '_blank');">📦 GitHub 仓库</div>
+                    <div class="project-tags">
+                        <span class="tag highlight">JSON Render</span>
+                        <span class="tag">antd</span>
+                        <span class="tag">AI UI</span>
+                        <span class="tag">Schema</span>
+                    </div>
+                </a>
+                
+                <!-- A2UI Demo -->
+                <a href="https://pkubuntu.github.io/a2ui-demo/" class="project-card" target="_blank">
+                    <div class="project-header">
+                        <span class="project-name">A2UI Demo</span>
+                        <span class="project-status">✅ 在线</span>
+                    </div>
+                    <p class="project-description">A2UI 协议演示网站，展示 Agent to UI 实时渲染能力。支持 JSONL 消息流驱动 Canvas 渲染。</p>
+                    <div class="demo-link">🔗 点击查看演示</div>
+                    <div class="github-link" onclick="event.preventDefault(); event.stopPropagation(); window.open('https://github.com/PKUbuntu/a2ui-demo', '_blank');">📦 GitHub 仓库</div>
+                    <div class="project-tags">
+                        <span class="tag">A2UI</span>
+                        <span class="tag">Canvas</span>
+                        <span class="tag">Agent</span>
+                    </div>
+                </a>
+                
+                <!-- Pen Viewer -->
+                <a href="https://pkubuntu.github.io/pen-viewer/" class="project-card" target="_blank">
+                    <div class="project-header">
+                        <span class="project-name">Pen Viewer</span>
+                        <span class="project-status">✅ 在线</span>
+                    </div>
+                    <p class="project-description">.pen 设计文件 Web 渲染器，支持 Pencil.dev 开放格式的可视化展示。</p>
+                    <div class="demo-link">🔗 点击查看演示</div>
+                    <div class="github-link" onclick="event.preventDefault(); event.stopPropagation(); window.open('https://github.com/PKUbuntu/pen-viewer', '_blank');">📦 GitHub 仓库</div>
+                    <div class="project-tags">
+                        <span class="tag">Design</span>
+                        <span class="tag">Renderer</span>
+                        <span class="tag">.pen</span>
+                    </div>
+                </a>
+                
+                <!-- Pencil Homepage -->
+                <a href="https://pkubuntu.github.io/pencil-homepage/" class="project-card" target="_blank">
+                    <div class="project-header">
+                        <span class="project-name">Pencil Homepage</span>
+                        <span class="project-status">✅ 在线</span>
+                    </div>
+                    <p class="project-description">使用 Pencil MCP + Claude Code 从 .pen 设计文件自动生成的前端页面，支持深色模式。</p>
+                    <div class="demo-link">🔗 点击查看演示</div>
+                    <div class="github-link" onclick="event.preventDefault(); event.stopPropagation(); window.open('https://github.com/PKUbuntu/pencil-homepage', '_blank');">📦 GitHub 仓库</div>
+                    <div class="project-tags">
+                        <span class="tag">Pencil</span>
+                        <span class="tag">React</span>
+                        <span class="tag">AI Generated</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2 class="section-title">🎯 研究方向</h2>
+            <div class="projects">
+                <div class="project-card" style="cursor: default;">
+                    <span class="project-name">🤖 AI Agent</span>
+                    <p class="project-description">探索 AI Agent 架构、工具链和自动化系统，构建智能助手与开发工具。</p>
+                </div>
+                <div class="project-card" style="cursor: default;">
+                    <span class="project-name">🎨 Design-as-Code</span>
+                    <p class="project-description">研究设计文件的可编程性，推动设计与代码的无缝衔接。</p>
+                </div>
+                <div class="project-card" style="cursor: default;">
+                    <span class="project-name">🔧 Developer Tools</span>
+                    <p class="project-description">打造提升开发效率的工具链，自动化重复性工作。</p>
+                </div>
+            </div>
+        </section>
+        
+        <footer>
+            <p>Made with ❤️ by <a href="https://github.com/PKUbuntu" target="_blank">PKUbuntu</a></p>
+            <p style="margin-top: 8px; font-size: 0.85rem;">© 2026 · Powered by GitHub Pages</p>
+        </footer>
+    </div>
+</body>
+</html>
