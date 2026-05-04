@@ -131,5 +131,6 @@ docs/README.md
 
 ## 更新日志
 
+- 2026-05-04: DSL 整合完成，详见 [DSL 整合总结](./dsl-integration-summary.md)
 - 2026-05-04: Phase 1 MVP 完成，详见 [Phase 1 总结](./phase1-summary.md)
 - 2026-05-04: 初始文档创建

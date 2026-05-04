@@ -8,18 +8,72 @@ import { z } from 'zod';
 // ==================== 基础类型 ====================
 
 /**
- * JSON 节点类型
+ * JSON 值类型（递归定义）
  */
-export interface JsonNode {
-  type: string;
-  props?: Record<string, any>;
-  children?: JsonNode[];
+export type JSONValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JSONValue[]
+  | { [key: string]: JSONValue };
+
+/**
+ * 数据绑定表达式（新 DSL 格式）
+ */
+export type BindingExpr =
+  | { type: "state"; path: string }   // 绑定全局 state
+  | { type: "prop"; path: string }    // 绑定父级 props
+  | { type: "const"; value: JSONValue }; // 常量
+
+/**
+ * Action 意图（新 DSL 格式）
+ */
+export interface ActionIntent {
+  type: string; // 必须来自 Catalog（如 "submit_form", "view_details"）
+  payload?: Record<string, JSONValue>;
 }
 
 /**
- * JSON Schema 类型
+ * 节点元数据
+ */
+export interface NodeMeta {
+  key?: string;        // React key / 渲染稳定性
+  visible?: boolean;   // 条件渲染
+  debug?: boolean;     // 调试标记
+  [key: string]: any;  // 其他元数据
+}
+
+/**
+ * JSON 节点类型（增强版）
+ */
+export interface JsonNode {
+  id?: string; // 唯一标识（用于 diff / 事件 / trace）
+  type: string; // 组件类型（必须存在于 Catalog）
+  props?: Record<string, JSONValue | BindingExpr>; // 支持原始值或绑定表达式
+  children?: JsonNode[];
+  actions?: ActionIntent[]; // 节点级 Actions（新 DSL）
+  bindings?: Record<string, BindingExpr>; // 独立声明绑定（新 DSL）
+  meta?: NodeMeta; // 元数据（新 DSL）
+}
+
+/**
+ * JSON Schema 类型（增强版）
  */
 export interface JsonSchema {
+  schemaVersion: string;   // DSL 版本（用于解析）
+  catalogVersion: string;  // Catalog 版本（关键！防止不兼容）
+  root: JsonNode; // UI 树根节点（新 DSL 使用 root）
+  state?: Record<string, JSONValue>; // 初始状态（只读输入）
+  meta?: {
+    generatedBy?: string;  // 生成来源（模型/agent）
+    timestamp?: number;    // 生成时间
+    traceId?: string;      // 调试追踪
+  };
+}
+
+// 兼容旧格式
+export interface LegacyJsonSchema {
   version: string;
   component: JsonNode;
   state?: StateDefinition;
@@ -28,7 +82,7 @@ export interface JsonSchema {
 }
 
 /**
- * 状态定义
+ * 状态定义（旧格式，保留兼容）
  */
 export interface StateDefinition {
   initialValues: Record<string, any>;
@@ -335,13 +389,169 @@ export interface RateLimitConfig {
  */
 export interface RenderContext {
   state: any;
+  props?: any; // 父组件 props
   onAction?: (actionName: string, payload: any) => void | Promise<void>;
   key?: string | number;
 }
 
+// ==================== DSL 格式转换 ====================
+
 /**
- * 绑定表达式
+ * 检测是否为新 DSL 格式
  */
+export function isNewDSLFormat(schema: any): schema is JsonSchema {
+  return schema?.schemaVersion && schema?.catalogVersion && schema?.root;
+}
+
+/**
+ * 检测是否为旧格式（兼容）
+ */
+export function isLegacyFormat(schema: any): schema is LegacyJsonSchema {
+  return schema?.version && schema?.component;
+}
+
+/**
+ * 将旧格式转换为新格式
+ */
+export function legacyToNew(legacy: LegacyJsonSchema): JsonSchema {
+  return {
+    schemaVersion: "1.0.0",
+    catalogVersion: legacy.version || "1.0.0",
+    root: legacy.component,
+    state: legacy.state?.initialValues,
+    meta: {
+      generatedBy: "legacy-converter",
+      timestamp: Date.now()
+    }
+  };
+}
+
+/**
+ * 将新格式转换为旧格式（用于兼容）
+ */
+export function newToLegacy(schema: JsonSchema): LegacyJsonSchema {
+  return {
+    version: schema.catalogVersion,
+    component: schema.root,
+    state: schema.state ? {
+      initialValues: schema.state
+    } : undefined,
+    // 将节点级 Actions 转换为全局 Actions
+    actions: extractActionsFromTree(schema.root)
+  };
+}
+
+/**
+ * 从节点树中提取所有 Actions
+ */
+function extractActionsFromTree(node: JsonNode): Record<string, ActionDefinition> {
+  const actions: Record<string, ActionDefinition> = {};
+
+  function traverse(n: JsonNode, path: string = "root") {
+    if (n.actions) {
+      n.actions.forEach((action, index) => {
+        const actionName = `${path}_action_${index}`;
+        actions[actionName] = {
+          type: action.type,
+          description: `Action from ${path}`,
+          ...action.payload
+        };
+      });
+    }
+
+    if (n.children) {
+      n.children.forEach((child, index) => {
+        traverse(child, `${path}.children[${index}]`);
+      });
+    }
+  }
+
+  traverse(node);
+  return actions;
+}
+
+/**
+ * 解析绑定表达式（兼容新旧格式）
+ */
+export function parseBinding(value: any): BindingExpr | BindingExpression {
+  // 新格式：已经是 BindingExpr
+  if (value && typeof value === "object" && "type" in value) {
+    if (["state", "prop", "const"].includes(value.type)) {
+      return value as BindingExpr;
+    }
+  }
+
+  // 旧格式：字符串解析
+  if (typeof value === "string") {
+    // 模板表达式: {{state.xxx}} 或 {{xxx}}
+    if (value.startsWith("{{") && value.endsWith("}}")) {
+      const expr = value.slice(2, -2).trim();
+      if (expr.startsWith("state.")) {
+        return { type: "state", path: expr.slice(6) };
+      }
+      return { type: "const", value: expr };
+    }
+
+    // 简单状态引用: state.xxx
+    if (value.startsWith("state.")) {
+      return { type: "state", path: value.slice(6) };
+    }
+  }
+
+  // 默认作为常量
+  return { type: "const", value };
+}
+
+/**
+ * 求值绑定表达式（兼容新旧格式）
+ */
+export function evaluateBinding(
+  binding: BindingExpr | BindingExpression,
+  context: {
+    state: any;
+    props?: any;
+  }
+): any {
+  // 新格式 BindingExpr
+  if ("type" in binding) {
+    switch (binding.type) {
+      case "state":
+        return getNestedValue(context.state, binding.path!);
+      case "prop":
+        return getNestedValue(context.props || {}, binding.path!);
+      case "const":
+        return binding.value;
+    }
+  }
+
+  // 旧格式 BindingExpression
+  switch (binding.type) {
+    case "state":
+      return getNestedValue(context.state, binding.path!);
+    case "computed":
+      // TODO: 实现计算属性求值
+      return undefined;
+    case "literal":
+      return binding.value;
+  }
+}
+
+/**
+ * 获取嵌套属性值
+ */
+function getNestedValue(obj: any, path: string): any {
+  const keys = path.split(".");
+  let value = obj;
+
+  for (const key of keys) {
+    if (value == null) return undefined;
+    value = value[key];
+  }
+
+  return value;
+}
+
+// 保留旧的 BindingExpression 类型别名（向后兼容）
 export interface BindingExpression {
   type: 'state' | 'computed' | 'literal';
   path?: string;

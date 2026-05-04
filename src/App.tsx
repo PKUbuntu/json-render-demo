@@ -27,7 +27,10 @@ import {
   message,
   Spin,
 } from 'antd';
-import JsonRenderer, { JsonSchema } from './components/JsonRenderer';
+import JsonRenderer from './components/JsonRenderer';
+import type { LegacyJsonSchema } from './types/core';
+import EnhancedJsonRenderer from './components/EnhancedJsonRenderer';
+import { newDslExamples } from './examples/new-dsl-examples';
 
 const { Title, Text, Paragraph } = Typography;
 const { Panel } = Collapse;
@@ -35,7 +38,7 @@ const { Panel } = Collapse;
 // ==================== 示例 JSON Schemas ====================
 
 // 简单卡片
-const simpleCardSchema: JsonSchema = {
+const simpleCardSchema: LegacyJsonSchema = {
   version: '1.0.0',
   component: {
     type: 'Card',
@@ -49,7 +52,7 @@ const simpleCardSchema: JsonSchema = {
 };
 
 // 表单示例
-const formSchema: JsonSchema = {
+const formSchema: LegacyJsonSchema = {
   version: '1.0.0',
   component: {
     type: 'Card',
@@ -126,7 +129,7 @@ const formSchema: JsonSchema = {
 };
 
 // 数据仪表盘
-const dashboardSchema: JsonSchema = {
+const dashboardSchema: LegacyJsonSchema = {
   version: '1.0.0',
   component: {
     type: 'Space',
@@ -217,7 +220,7 @@ const dashboardSchema: JsonSchema = {
 
 // ==================== Code Generator ====================
 
-function generateCode(schema: JsonSchema): string {
+function generateCode(schema: LegacyJsonSchema): string {
   function generateNodeCode(node: any, indent: number = 0): string {
     const spaces = '  '.repeat(indent);
     const { type, props = {}, children = [] } = node;
@@ -251,14 +254,14 @@ function generateCode(schema: JsonSchema): string {
       'TypographyText': 'Typography.Text',
       'RadioGroup': 'Radio.Group',
       'div': 'div',
-    }[type] || type;
+    }[type as string] || type;
     
     // 处理 children
     if (children.length === 0 && !props.children) {
       return `${spaces}<${componentName} ${propsStr} />`;
     }
     
-    const childrenCode = children.map(c => generateNodeCode(c, indent + 1)).join('\n');
+    const childrenCode = children.map((c: any) => generateNodeCode(c, indent + 1)).join('\n');
     const textChildren = props.children ? props.children : '';
     
     if (children.length > 0) {
@@ -298,7 +301,7 @@ ${generateNodeCode(schema.component, 2)}
 // ==================== 非法 Schema 示例（用于测试校验） ====================
 
 // 非法示例 1: 未知组件类型
-const invalidSchema: JsonSchema = {
+const invalidSchema: LegacyJsonSchema = {
   version: '1.0.0',
   component: {
     type: 'UnknownComponent',  // ❌ 这个组件不在 Catalog 中
@@ -310,7 +313,7 @@ const invalidSchema: JsonSchema = {
 };
 
 // 非法示例 2: 错误的 Props
-const invalidPropsSchema: JsonSchema = {
+const invalidPropsSchema: LegacyJsonSchema = {
   version: '1.0.0',
   component: {
     type: 'Button',
@@ -329,20 +332,28 @@ const invalidPropsSchema: JsonSchema = {
 
 const App: React.FC = () => {
   const [isDark, setIsDark] = useState(false);
-  const [currentSchema, setCurrentSchema] = useState<JsonSchema>(simpleCardSchema);
+  const [currentSchema, setCurrentSchema] = useState<LegacyJsonSchema>(simpleCardSchema);
   const [currentJson, setCurrentJson] = useState(JSON.stringify(simpleCardSchema, null, 2));
   const [generatedCode, setGeneratedCode] = useState(generateCode(simpleCardSchema));
   const [showValidation, setShowValidation] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
 
+  // 新 DSL 示例状态
+  const [selectedExample, setSelectedExample] = useState(newDslExamples.basic);
+
   // 处理 Action
-  const handleAction = useCallback((actionName: string, _payload: Record<string, unknown>) => {
+  const handleAction = useCallback((action: { type: string; payload?: any }, _context: any) => {
+    message.success(`Action triggered: ${action.type}`);
+  }, []);
+
+  // 处理 Action (兼容旧 JsonRenderer)
+  const handleActionLegacy = useCallback((actionName: string, _payload: Record<string, unknown>) => {
     message.success(`Action triggered: ${actionName}`);
   }, []);
 
   // 切换示例
-  const loadExample = useCallback((schema: JsonSchema) => {
+  const loadExample = useCallback((schema: LegacyJsonSchema) => {
     setCurrentSchema(schema);
     setCurrentJson(JSON.stringify(schema, null, 2));
     setGeneratedCode(generateCode(schema));
@@ -355,7 +366,7 @@ const App: React.FC = () => {
     
     // 模拟 AI 思考过程
     setTimeout(() => {
-      let schema: JsonSchema;
+      let schema: LegacyJsonSchema;
       
       if (prompt.includes('form') || prompt.includes('表单')) {
         schema = formSchema;
@@ -528,7 +539,7 @@ const App: React.FC = () => {
                               {showValidation ? '启用 Zod Schema 校验' : '仅渲染'}
                             </span>
                           </div>
-                          <JsonRenderer schema={currentSchema} onAction={handleAction} showValidation={showValidation} />
+                          <JsonRenderer schema={currentSchema} onAction={handleActionLegacy} showValidation={showValidation} />
                         </Space>
                       </Card>
 
@@ -740,7 +751,7 @@ const App: React.FC = () => {
                       <Card title="🔍 校验结果 & 渲染" bordered={false}>
                         <JsonRenderer 
                           schema={currentSchema} 
-                          onAction={handleAction} 
+                          onAction={handleActionLegacy} 
                           showValidation={true}
                         />
                       </Card>
@@ -900,7 +911,109 @@ state.user.profile.avatar}`}
                 ),
               },
 
-              // Tab 7: Figma 双向同步潜力
+              // Tab 7: 新 DSL 格式
+              {
+                key: 'new-dsl',
+                label: '🆕 新 DSL 格式',
+                children: (
+                  <div style={{ display: 'flex', gap: 24 }}>
+                    <div style={{ width: '40%' }}>
+                      <Card title="📖 新 DSL 特性" bordered={false} size="small">
+                        <Space direction="vertical" style={{ width: '100%' }}>
+                          <Text type="secondary">选择示例：</Text>
+                          <Space wrap>
+                            <Button size="small" onClick={() => setSelectedExample(newDslExamples.basic)}>基础用法</Button>
+                            <Button size="small" onClick={() => setSelectedExample(newDslExamples.nodeActions)}>节点级 Actions</Button>
+                            <Button size="small" onClick={() => setSelectedExample(newDslExamples.conditionalRender)}>条件渲染</Button>
+                            <Button size="small" onClick={() => setSelectedExample(newDslExamples.bindings)}>独立 Bindings</Button>
+                            <Button size="small" onClick={() => setSelectedExample(newDslExamples.listRender)}>列表渲染</Button>
+                          </Space>
+                        </Space>
+                        <Divider style={{ margin: '12px 0' }} />
+                        <pre style={{
+                          fontSize: 10,
+                          maxHeight: 400,
+                          overflow: 'auto',
+                          backgroundColor: isDark ? '#1e1e1e' : '#f5f5f5',
+                          padding: 12,
+                          borderRadius: 6,
+                        }}>
+                          {JSON.stringify(selectedExample, null, 2)}
+                        </pre>
+                      </Card>
+                    </div>
+
+                    <div style={{ width: '60%' }}>
+                      <Card title="🎨 渲染结果（新格式）" bordered={false}>
+                        <Space direction="vertical" style={{ width: '100%' }}>
+                          <div>
+                            <Text type="secondary">新 DSL 特性：</Text>
+                            <Space wrap style={{ marginTop: 8 }}>
+                              <Tag color="blue">显式绑定</Tag>
+                              <Tag color="green">节点级 Actions</Tag>
+                              <Tag color="purple">条件渲染</Tag>
+                              <Tag color="orange">独立 Bindings</Tag>
+                            </Space>
+                          </div>
+                          <Divider style={{ margin: '12px 0' }} />
+                          <EnhancedJsonRenderer
+                            schema={selectedExample}
+                            state={{
+                              user: { name: 'Alice', isAdmin: true },
+                              form: { username: 'test', email: 'test@example.com' },
+                              users: [
+                                { id: 1, name: 'Alice', email: 'alice@example.com' },
+                                { id: 2, name: 'Bob', email: 'bob@example.com' }
+                              ]
+                            }}
+                            onAction={handleAction}
+                          />
+                        </Space>
+                      </Card>
+
+                      <Card title="📋 新格式对比" bordered={false} style={{ marginTop: 16 }} size="small">
+                        <Collapse ghost>
+                          <Panel header="新旧格式对比" key="format-compare">
+                            <pre style={{ fontSize: 10 }}>
+{`// 旧格式（隐式绑定）
+{
+  "type": "Button",
+  "props": {
+    "children": "Click me",
+    "onClick": "submitForm"
+  }
+}
+
+// 新格式（显式绑定）
+{
+  "type": "Button",
+  "props": {
+    "children": { "type": "const", "value": "Click me" }
+  },
+  "actions": [{ "type": "submitForm" }]
+}`}
+                            </pre>
+                          </Panel>
+                          <Panel header="绑定表达式类型" key="binding-types">
+                            <pre style={{ fontSize: 10 }}>
+{`// 状态绑定
+{ "type": "state", "path": "user.name" }
+
+// 常量
+{ "type": "const", "value": "Hello" }
+
+// Props 绑定（待实现）
+{ "type": "prop", "path": "parent.value" }`}
+                            </pre>
+                          </Panel>
+                        </Collapse>
+                      </Card>
+                    </div>
+                  </div>
+                ),
+              },
+
+              // Tab 8: Figma 双向同步潜力
               {
                 key: 'figma',
                 label: '📐 Figma 双向同步潜力',
