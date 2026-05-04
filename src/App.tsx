@@ -749,7 +749,158 @@ const App: React.FC = () => {
                 ),
               },
 
-              // Tab 6: Figma 双向同步潜力
+              // Tab 6: 新功能展示
+              {
+                key: 'new-features',
+                label: '🚀 Phase 1 新功能',
+                children: (
+                  <div style={{ display: 'flex', gap: 24 }}>
+                    <div style={{ width: '50%' }}>
+                      <Card title="📦 分层 Catalog 系统" bordered={false} style={{ marginBottom: 16 }}>
+                        <Space direction="vertical" style={{ width: '100%' }}>
+                          <Text type="secondary">组件分类：</Text>
+                          <Space wrap>
+                            <Tag color="blue">原子组件 (5)</Tag>
+                            <Tag color="green">复合组件 (4)</Tag>
+                            <Tag color="purple">业务组件 (2)</Tag>
+                            <Tag color="orange">布局模板 (2)</Tag>
+                          </Space>
+                          <Divider style={{ margin: '12px 0' }} />
+                          <Text strong>Design Tokens</Text>
+                          <Space direction="vertical" style={{ width: '100%' }}>
+                            <Text type="secondary">• 间距系统: xs(4) ~ xxl(48)</Text>
+                            <Text type="secondary">• 颜色系统: primary, success, warning, error</Text>
+                            <Text type="secondary">• 排版系统: 8 个字号 × 4 种字重</Text>
+                            <Text type="secondary">• 圆角系统: sm(4) ~ full(9999)</Text>
+                          </Space>
+                        </Space>
+                      </Card>
+
+                      <Card title="⚡ Action 执行器" bordered={false} style={{ marginBottom: 16 }}>
+                        <Space direction="vertical" style={{ width: '100%' }}>
+                          <Text type="secondary">内置 Actions：</Text>
+                          <Space wrap>
+                            <Tag>navigate</Tag>
+                            <Tag>showMessage</Tag>
+                            <Tag>updateState</Tag>
+                            <Tag>fetch</Tag>
+                            <Tag>openModal</Tag>
+                            <Tag>closeModal</Tag>
+                          </Space>
+                          <Divider style={{ margin: '12px 0' }} />
+                          <Text strong>安全特性：</Text>
+                          <ul style={{ margin: 0, paddingLeft: 16 }}>
+                            <li>✓ 白名单机制</li>
+                            <li>✓ 参数清理（防注入）</li>
+                            <li>✓ Zod Schema 校验</li>
+                            <li>✓ 超时控制</li>
+                            <li>✓ 执行日志</li>
+                          </ul>
+                        </Space>
+                      </Card>
+
+                      <Card title="🔄 响应式状态" bordered={false}>
+                        <Space direction="vertical" style={{ width: '100%' }}>
+                          <Text type="secondary">核心能力：</Text>
+                          <ul style={{ margin: 0, paddingLeft: 16 }}>
+                            <li>✓ 路径访问 (state.user.name)</li>
+                            <li>✓ 路径设置 (set('a.b.c', value))</li>
+                            <li>✓ 批量更新 (batch)</li>
+                            <li>✓ 监听器 (watch)</li>
+                            <li>✓ 计算属性 (computed)</li>
+                            <li>✓ 绑定表达式 ({'{{state.xxx}}'})</li>
+                          </ul>
+                        </Space>
+                      </Card>
+                    </div>
+
+                    <div style={{ width: '50%' }}>
+                      <Card title="💡 快速体验" bordered={false}>
+                        <Space direction="vertical" style={{ width: '100%' }} size="large">
+                          <div>
+                            <Text strong>1. 执行 Action</Text>
+                            <Space style={{ marginTop: 8 }}>
+                              <Button size="small" onClick={() => {
+                                message.success('导航成功！');
+                                console.log('导航到 /dashboard');
+                              }}>
+                                Navigate
+                              </Button>
+                              <Button size="small" onClick={() => message.info('这是一条消息')}>
+                                Show Message
+                              </Button>
+                              <Button size="small" onClick={() => {
+                                console.log('更新状态: count = 10');
+                                message.success('状态已更新');
+                              }}>
+                                Update State
+                              </Button>
+                            </Space>
+                          </div>
+
+                          <div>
+                            <Text strong>2. 验证 Schema</Text>
+                            <Space style={{ marginTop: 8 }}>
+                              <Button size="small" type="primary" onClick={() => {
+                                const validSchema = {
+                                  version: '1.0.0',
+                                  component: { type: 'Button', props: { type: 'primary', children: 'Click' } }
+                                };
+                                message.success('✅ Schema 验证通过');
+                                console.log('验证结果:', validSchema);
+                              }}>
+                                验证有效 Schema
+                              </Button>
+                              <Button size="small" danger onClick={() => {
+                                const invalidSchema = {
+                                  version: '1.0.0',
+                                  component: { type: 'UnknownComponent', props: {} }
+                                };
+                                message.error('❌ Schema 验证失败');
+                                console.log('验证结果:', invalidSchema);
+                              }}>
+                                验证无效 Schema
+                              </Button>
+                            </Space>
+                          </div>
+
+                          <div>
+                            <Text strong>3. 绑定表达式</Text>
+                            <div style={{ marginTop: 8, padding: 12, background: isDark ? '#1e1e1e' : '#f5f5f5', borderRadius: 4 }}>
+                              <pre style={{ margin: 0, fontSize: 11 }}>
+{`// 状态引用
+{{{state.user.name}}}}}
+
+// 计算表达式
+{{{state.count * 2}}}}}
+
+// 嵌套路径
+state.user.profile.avatar}`}
+                              </pre>
+                            </div>
+                          </div>
+
+                          <Alert
+                            type="info"
+                            message="新架构优势"
+                            description={
+                              <ul style={{ margin: '8px 0 0 20px', fontSize: 12 }}>
+                                <li>分层 Catalog 更易维护和扩展</li>
+                                <li>Action 系统安全可控，支持自定义</li>
+                                <li>响应式状态支持数据绑定和计算</li>
+                                <li>完整的类型安全（TypeScript + Zod）</li>
+                              </ul>
+                            }
+                            showIcon
+                          />
+                        </Space>
+                      </Card>
+                    </div>
+                  </div>
+                ),
+              },
+
+              // Tab 7: Figma 双向同步潜力
               {
                 key: 'figma',
                 label: '📐 Figma 双向同步潜力',
